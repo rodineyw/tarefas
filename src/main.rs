@@ -17,7 +17,7 @@ fn criar_linha_tarefa(tarefa: &Tarefa, lista: &ListBox) -> ListBoxRow {
 
     // Checkbox para marcar como concluida
     let check_button = CheckButton::new();
-    check_button.set_activate(tarefa.concluida);
+    check_button.set_active(tarefa.concluida);
 
     // Rótulo com o texto da tarefa
     let label = gtk4::Label::new(Some(&tarefa.texto));
@@ -65,12 +65,11 @@ fn criar_janela_principal(app: &Application) {
     let adicionar_tarefa = {
         let task_list = task_list.clone();
         let entry = entry.clone();
-        move |_button: &Button| {
+        move | | {
             let texto = entry.text();
             if !texto.is_empty() {
-                let row = ListBoxRow::new();
-                let label = gtk4::Label::new(Some(&texto));
-                row.set_child(Some(&label));
+                let tarefa = Tarefa { texto: texto.to_string(), concluida: false};
+                let row = criar_linha_tarefa(&tarefa, &task_list);
 
                 task_list.append(&row);
                 entry.set_text("");
