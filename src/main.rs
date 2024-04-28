@@ -28,6 +28,10 @@ fn criar_linha_tarefa(tarefa: &Tarefa, task_list: &ListBox) -> ListBoxRow {
     // Rótulo com o texto da tarefa
     let label = gtk4::Label::new(Some(&tarefa.texto));
 
+    // Adicionar um elemento de espaçamento
+    let spacer = Box::new(Orientation::Horizontal, 5);
+    spacer.set_hexpand(true);
+
     // Botão para remover a tarefa
     let remove_button = Button::with_label("Remover");
     remove_button.connect_clicked({
@@ -41,6 +45,7 @@ fn criar_linha_tarefa(tarefa: &Tarefa, task_list: &ListBox) -> ListBoxRow {
     // Adicionar widgets à caixa
     hbox.append(&check_button);
     hbox.append(&label);
+    hbox.append(&spacer);
     hbox.append(&remove_button);
 
     // Adicionar a caixa ao ListBoxRow
