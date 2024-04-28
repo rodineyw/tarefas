@@ -1,5 +1,5 @@
-use gtk4::{prelude::*, CheckButton};
-use gtk4::{Application, ApplicationWindow, Button, Entry, ListBox, ListBoxRow, Orientation, Box};
+use gtk4::{prelude::*};
+use gtk4::{Application, ApplicationWindow, Button, CheckButton, Entry, ListBox, ListBoxRow, Orientation, Box};
 
 
 // Criar estrutura para tarefas com estado
@@ -9,7 +9,7 @@ struct Tarefa {
 }
 
 // Função para criar uma linha para uma tarefa
-fn criar_linha_tarefa(tarefa: &Tarefa, lista: &ListBox) -> ListBoxRow {
+fn criar_linha_tarefa(tarefa: &Tarefa, task_list: &ListBox) -> ListBoxRow {
     let row = ListBoxRow::new();
 
     // Caixa para organizar a linha 
@@ -19,16 +19,23 @@ fn criar_linha_tarefa(tarefa: &Tarefa, lista: &ListBox) -> ListBoxRow {
     let check_button = CheckButton::new();
     check_button.set_active(tarefa.concluida);
 
+    // Conectar o evento "toggled" para capturar mudanças no checkbox
+    check_button.connect_toggled(move |check_button| {
+        let ativo = check_button.is_active();
+        println!("Tarefa concluida: {}", ativo);
+    });
+
     // Rótulo com o texto da tarefa
     let label = gtk4::Label::new(Some(&tarefa.texto));
 
     // Botão para remover a tarefa
     let remove_button = Button::with_label("Remover");
-
-    // Conectar botão para remover a linha
-    let row_ref = row.clone();
-    remove_button.connect_clicked(move |_| {
-        lista.remove(&row_ref); // Remove a linha do listbox
+    remove_button.connect_clicked({
+        let row_ref = row.clone();
+        let task_list = task_list.clone();
+        move |_| {
+            task_list.remove(&row_ref);
+        }
     });
 
     // Adicionar widgets à caixa
@@ -42,53 +49,48 @@ fn criar_linha_tarefa(tarefa: &Tarefa, lista: &ListBox) -> ListBoxRow {
     row
 }
 
+// Função para adicionar uma tarefa ao listbox
+fn adicionar_tarefa(task_list: &ListBox, entry: &Entry) {
+    let texto = entry.text();
+    if !texto.is_empty() {
+        let tarefa = Tarefa { texto: texto.to_string(), concluida: false };
+        let row = criar_linha_tarefa(&tarefa, task_list);
 
-// Função para criar a janela principal do aplicativo
+        task_list.append(&row);
+        entry.set_text("");
+    }
+}
+
+
+// Criar a janela principal do aplicativo
 fn criar_janela_principal(app: &Application) {
-    // Criar uma nova janela
     let window = ApplicationWindow::new(app);
     window.set_title(Some("Gerenciador de Tarefas"));
     window.set_default_size(400, 300);
 
-    // Criar uma caixa para organizar os widgets
     let vbox = Box::new(Orientation::Vertical, 5);
 
-    // Entrada para adicionar tarefas
     let entry = Entry::new();
     entry.set_placeholder_text(Some("Digite uma tarefa..."));
 
-    // Botão para adicionar tarefas
     let add_button = Button::with_label("Adicionar Tarefa");
     let task_list = ListBox::new(); // Lista para exibir tarefas
 
-    // Função para adicionar tarefa à lista
-    let adicionar_tarefa = {
+    let entry_clone = entry.clone();
+
+    add_button.connect_clicked({
         let task_list = task_list.clone();
-        let entry = entry.clone();
-        move | | {
-            let texto = entry.text();
-            if !texto.is_empty() {
-                let tarefa = Tarefa { texto: texto.to_string(), concluida: false};
-                let row = criar_linha_tarefa(&tarefa, &task_list);
-
-                task_list.append(&row);
-                entry.set_text("");
-            }
+        move |_| {
+            adicionar_tarefa(&task_list, &entry_clone);
         }
-    };
-
-    // Conectar o botão para adicionar tarefa
-    add_button.connect_clicked(adicionar_tarefa);
+    });
 
     // Adicionar Widgets à caixa
     vbox.append(&entry);
     vbox.append(&add_button);
     vbox.append(&task_list);
 
-    // Adicionar a caixa a janela
     window.set_child(Some(&vbox));
-
-    // Mostrat a janela
     window.present();
 }
 
