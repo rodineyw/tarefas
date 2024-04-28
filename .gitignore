@@ -1,1 +1,7 @@
 /target
+
+/build-dir
+
+/.flatpak-builder
+
+manifesto.json
